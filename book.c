@@ -10,13 +10,20 @@ struct b_entry {
 	char isbn[13]; 
 	char title[40];
 	short copies; 
-} entries;
+} b_entries;
+
+struct l_entry {
+	char isbn[13];
+	char name[40];
+	char email[40];
+} l_entries;
 
 FILE *fp;
 
-main() {
+void bookentry() {
 	
-	char str[3];
+	char str[3]; /* temporary string to hold copies number for atoi() */
+	
 	system("clear"); 
 	
 	if((fp = fopen("BOOK_ENTRIES", "a+")) == NULL) 
@@ -25,25 +32,50 @@ main() {
 		return;
 	}
 	
-	int i;
-	
-	for(i=0; i<2; i++) 
-	{
+	for(;;) {
 		printf("New ISBN ");
-		gets(entries.isbn);
-		if(strlen(entries.isbn)==0) 
+		gets(b_entries.isbn);
+		if(strlen(b_entries.isbn)==0) 
 		{
 			fclose(fp);
 			exit(0);
 		}
 		
 		printf("New Title ");
-		gets(entries.title);
+		gets(b_entries.title);
 		
 		printf("Copies Left ");
 		gets(str);
-		entries.copies = atoi(str);
+		b_entries.copies = atoi(str);
 		
-		fwrite(&entries, sizeof(entries), 1, fp);
+		fwrite(&b_entries, sizeof(b_entries), 1, fp);
 	}
+
+}
+
+main() {
+	
+	int choice; /* holds menu choice of user */
+	
+	system("clear"); 
+	
+	printf("1. Book Entry\n2. Lending Entry\n3. Print Book Statuses\n");
+	
+	scanf("%d", &choice);
+	
+	switch(choice)
+	{
+		case 1:	bookentry();
+				break;
+				
+		case 2: printf("@\n");
+				break;
+				
+		case 3: printf("#\n");
+				break;
+		
+		default: printf("u did some wrong\n");  
+	}
+	
+	
 }
