@@ -3,8 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX 1024
-
+#define MAX 54
 /*isbn, title, #copies*/
 /*isbn, name, e-mail*/
 
@@ -97,8 +96,9 @@ void getstats() {
 	
 	int child, status, n;
 	int filed[2];
-	int buf1;
-	int buf2;
+	char buf[20];
+	char *isbn, *title, *t;
+	char c;
 	
 	if(pipe(filed) == -1) 
 		exit(1);
@@ -128,14 +128,15 @@ void getstats() {
 			
 			if(!feof(fp))
 			{
-				buf1 = strlen(b_entries.isbn);
+				//isize = strlen(b_entries.isbn);
 				write(filed[1], b_entries.isbn, strlen(b_entries.isbn));
+				write(filed[1], ";", 1);
 				write(filed[1], b_entries.title, strlen(b_entries.title));
-			}
-			wait(&status);
+				write(filed[1], ":", 1);
+			}	
 		}
 		
-		
+		wait(&status);
 		
 		close(filed[1]);
 	}
@@ -143,21 +144,26 @@ void getstats() {
 	{
 		close(filed[1]);
 		
-		read(filed[0], b_entries.isbn, buf1);
-		printf("ISBN SIZE = %d\n", sizeof(b_entries.isbn));
-		read(filed[0], b_entries.title, buf2);
+		while(n = read(filed[0], buf, MAX) > 0); {
 		
-		printf("%s %s\n", b_entries.isbn, b_entries.title);
-
-		while(!feof(fp2)) 
-		{
-			fread(&l_entries,sizeof(l_entries),1,fp2);
+			isbn = strtok(buf, ";");
+			t = strtok(NULL, ";");
+			title = strtok(t, ":");
 			
-			if(!feof(fp2))
+			printf("ISBN = %s, TITLE = %s\n", isbn, title);
+			
+			printf("%s %s\n", b_entries.isbn, b_entries.title);
+
+			while(!feof(fp2)) 
 			{
-				if(strcmp(b_entries.isbn, l_entries.isbn))
+				fread(&l_entries,sizeof(l_entries),1,fp2);
+				
+				if(!feof(fp2))
 				{
-					printf("%s %s\n", l_entries.name, l_entries.email);
+					if(strcmp(isbn, l_entries.isbn) == 0)
+					{
+						printf("%s %s\n", l_entries.name, l_entries.email);
+					}
 				}
 			}
 		}
@@ -172,33 +178,34 @@ void getstats() {
 int main(int argc, char *argv[]) {
 	
 	int choice; /* holds menu choice of user */
+	int term = 1;
 	
-	for(;;)
+
+	//system("clear"); 
+
+	printf("\n1. Book Entry\n2. Lending Entry\n3. Print Book Statuses\
+	\n4. Exit\n\n");
+	
+	scanf("%d", &choice);
+	
+	switch(choice)
 	{
-		//system("clear"); 
-	
-		printf("\n1. Book Entry\n2. Lending Entry\n3. Print Book Statuses\
-		\n4. Exit\n");
+		case 1:	bookentry();
+				break;
+				
+		case 2: lendentry();
+				break;
+				
+		case 3: getstats();
+				break;
+				
+		case 4: printf("Thank you for using me\n");
+				term = -1;
+				break;
 		
-		scanf("%d", &choice);
-		
-		switch(choice)
-		{
-			case 1:	bookentry();
-					break;
-					
-			case 2: lendentry();
-					break;
-					
-			case 3: getstats();
-					break;
-					
-			case 4: printf("Thank you for using me\n");
-					exit(0);
-			
-			default: printf("u did some wrong\n");  
-		}
+		default: printf("u did some wrong\n");  
 	}
+
 	
 	return 0;
 	
