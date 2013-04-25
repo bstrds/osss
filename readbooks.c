@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 struct b_entry {
-	char isbn[13]; 
+	char isbn[14]; 
 	char title[40];
 	short copies; 
 } entries;
