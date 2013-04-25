@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX 54
+#define MAX 1024
 /*isbn, title, #copies*/
 /*isbn, name, e-mail*/
 
@@ -144,8 +144,12 @@ void getstats() {
 	{
 		close(filed[1]);
 		
-		while(n = read(filed[0], buf, MAX) > 0); {
+		n = 1;
 		
+		while(n > 0); {
+			
+			n = read(filed[0], buf, MAX);
+			
 			isbn = strtok(buf, ";");
 			t = strtok(NULL, ";");
 			title = strtok(t, ":");
