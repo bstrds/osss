@@ -140,9 +140,10 @@ void getstats() {
 				write(filed[1], b_entries.title, strlen(b_entries.title));
 				write(filed[1], ":", 1);
 			}	
+			wait(&status);
 		}
 		
-		wait(&status);
+		
 		
 		close(filed[1]);
 		exit(0);
