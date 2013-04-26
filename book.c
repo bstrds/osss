@@ -99,7 +99,7 @@ void getstats() {
 	char buf[40];
 	char *isbn, *title, *t;
 	int msize;
-	char lengthbyte, lb;
+	unsigned char lengthbyte, lb;
 	
 	if(pipe(filed) == -1) 
 		exit(1);
@@ -129,21 +129,26 @@ void getstats() {
 			
 			if(!feof(fp))
 			{
-				lengthbyte = (char)strlen(b_entries.isbn) + (char)strlen(b_entries.title) + (char)2;
+				//lengthbyte = (unsigned char)strlen(b_entries.isbn) + (unsigned char)strlen(b_entries.title) + (unsigned char)2;
 				
-				printf("WTF --> %d\n", lengthbyte);
+				sprintf(&lengthbyte, "%c", (unsigned char)strlen(b_entries.isbn) + (unsigned char)strlen(b_entries.title) + (unsigned char)2);
+				//printf("WTF --> %d\n", lengthbyte);
 				
-				write(filed[1], lengthbyte, 1);
+				write(filed[1], &lengthbyte, 1);
 				
 				write(filed[1], b_entries.isbn, strlen(b_entries.isbn));
 				write(filed[1], ";", 1);
 				write(filed[1], b_entries.title, strlen(b_entries.title));
 				write(filed[1], ":", 1);
 			}	
-			wait(&status);
+			
 		}
 		
+		lengthbyte = strlen("TERMINATE")+1;
 		
+		write(filed[1], &lengthbyte, 1);
+		write(filed[1], "TERMINATE", strlen("TERMINATE")+1);
+		wait(&status);
 		
 		close(filed[1]);
 		exit(0);
@@ -153,7 +158,7 @@ void getstats() {
 		close(filed[1]);
 		
 		read(filed[0], &lb, 1);
-		printf("LB = %s\n", lb);
+		//printf("LB = %d\n", lb);
 		
 		n = 1;
 		
@@ -161,13 +166,14 @@ void getstats() {
 			
 			n = read(filed[0], buf, lb);
 			
+			if(strcmp(buf, "TERMINATE") == 0)
+				break;
+			
 			isbn = strtok(buf, ";");
 			t = strtok(NULL, ";");
 			title = strtok(t, ":");
 			
 			printf("ISBN = %s, TITLE = %s\n", isbn, title);
-			
-			//printf("%s %s\n", b_entries.isbn, b_entries.title);
 
 			while(!feof(fp2)) 
 			{
@@ -183,7 +189,8 @@ void getstats() {
 			}
 			
 			read(filed[0], &lb, 1);
-			printf("LB = %d\n", lb);
+			
+			//printf("LB = %d\n", lb);
 		}
 		
 		close(filed[0]);
