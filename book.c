@@ -151,8 +151,8 @@ void getstats() {
 	{
 		close(filed[1]);
 		
-		read(filed[0], &lengthbyte, 1);
-		printf("LB = %d\n", lengthbyte);
+		read(filed[0], &lb, 1);
+		printf("LB = %d\n", lb);
 		
 		n = 1;
 		
