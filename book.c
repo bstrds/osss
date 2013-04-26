@@ -96,7 +96,7 @@ void getstats() {
 	
 	int child, status, n;
 	int filed[2];
-	char buf[19];
+	char buf[40];
 	char *isbn, *title, *t;
 	int msize;
 	char lengthbyte, lb;
@@ -152,13 +152,13 @@ void getstats() {
 		close(filed[1]);
 		
 		read(filed[0], &lb, 1);
-		printf("LB = %d\n", lb);
+		printf("LB = %s\n", lb);
 		
 		n = 1;
 		
 		while(n > 0) {
 			
-			n = read(filed[0], buf, 19);
+			n = read(filed[0], buf, lb);
 			
 			isbn = strtok(buf, ";");
 			t = strtok(NULL, ";");
@@ -180,6 +180,9 @@ void getstats() {
 					}
 				}
 			}
+			
+			read(filed[0], &lb, 1);
+			printf("LB = %d\n", lb);
 		}
 		
 		close(filed[0]);
@@ -193,8 +196,6 @@ void getstats() {
 int main(int argc, char *argv[]) {
 	
 	int choice; /* holds menu choice of user */
-	int term = 1;
-	
 
 	//system("clear"); 
 
@@ -215,10 +216,9 @@ int main(int argc, char *argv[]) {
 				break;
 				
 		case 4: printf("Thank you for using me\n");
-				term = -1;
 				break;
 		
-		default: printf("u did some wrong\n");  
+		default: printf("You did something wrong\n");  
 	}
 
 	
