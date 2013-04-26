@@ -3,12 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX 1024
-/*isbn, title, #copies*/
-/*isbn, name, e-mail*/
-
 struct b_entry {
-	char isbn[14]; 
+	char isbn[20]; 
 	char title[40];
 	short copies; 
 } b_entries;
@@ -25,8 +21,7 @@ FILE *fp2;
 void bookentry() {
 	
 	char str[4]; /* temporary string to hold copies number for atoi() */
-	
-	system("clear"); 
+	int i;
 	
 	if((fp = fopen("BOOK_ENTRIES", "a+")) == NULL) 
 	{
@@ -34,34 +29,37 @@ void bookentry() {
 		return;
 	}
 	
+	/* catching a stray newline.. :/ */
+	getchar();
 	
 	printf("New ISBN: ");
-	
-	for(;;) 
+	fgets(b_entries.isbn, sizeof(b_entries.isbn), stdin);
+	/* removing the newline that gets added by fgets */
+	for(i=0; i<strlen(b_entries.isbn); i++) 
 	{
-		scanf("%s", &b_entries.isbn);
-		
-		if(strlen(b_entries.isbn)==0 || strlen(b_entries.isbn)>13) 
-			printf("\nYou provided an invalid ISBN number\n");
-		else 
-			break;
+		if(b_entries.isbn[i] == '\n')
+			b_entries.isbn[i] = 0;
 	}
 	
 	printf("New Title: ");
-	scanf("%s", &b_entries.title);
+	fgets(b_entries.title, sizeof(b_entries.title), stdin);
+	for(i=0; i<strlen(b_entries.title); i++) 
+	{
+		if(b_entries.title[i] == '\n')
+			b_entries.title[i] = 0;
+	}
 	
 	printf("Copies Left: ");
-	scanf("%s", &str);
+	fgets(str, sizeof(str), stdin);
 	b_entries.copies = atoi(str);
 	
+	/* writing everything to the BOOK_ENTRIES FILE */
 	fwrite(&b_entries, sizeof(b_entries), 1, fp);
 	
 	fclose(fp);
 }
 
 void lendentry() {
-	
-	system("clear");
 	
 	if((fp = fopen("LENDING_ENTRIES", "a+")) == NULL) 
 	{
@@ -98,7 +96,6 @@ void getstats() {
 	int filed[2];
 	char buf[40];
 	char *isbn, *title, *t;
-	int msize;
 	unsigned char lengthbyte, lb;
 	
 	if(pipe(filed) == -1) 
@@ -129,13 +126,20 @@ void getstats() {
 			
 			if(!feof(fp))
 			{
-				//lengthbyte = (unsigned char)strlen(b_entries.isbn) + (unsigned char)strlen(b_entries.title) + (unsigned char)2;
+				/* a byte where the length of the upcoming string is
+				 * calculated and stored
+				 */
+				lengthbyte = (unsigned char)strlen(b_entries.isbn) + \
+							 (unsigned char)strlen(b_entries.title) + \
+							 (unsigned char)2;
 				
-				sprintf(&lengthbyte, "%c", (unsigned char)strlen(b_entries.isbn) + (unsigned char)strlen(b_entries.title) + (unsigned char)2);
-				//printf("WTF --> %d\n", lengthbyte);
-				
+				/* writing the length byte to the pipe */
 				write(filed[1], &lengthbyte, 1);
 				
+				/* writing a book entry (isbn and title) to the pipe,
+				 * the symbols ';' and ':' are simply deliminators 
+				 * for later string splitting
+				 */
 				write(filed[1], b_entries.isbn, strlen(b_entries.isbn));
 				write(filed[1], ";", 1);
 				write(filed[1], b_entries.title, strlen(b_entries.title));
@@ -144,10 +148,11 @@ void getstats() {
 			
 		}
 		
+		/* sending a termination signal to the pipe */
 		lengthbyte = strlen("TERMINATE")+1;
-		
 		write(filed[1], &lengthbyte, 1);
 		write(filed[1], "TERMINATE", strlen("TERMINATE")+1);
+		
 		wait(&status);
 		
 		close(filed[1]);
@@ -157,8 +162,10 @@ void getstats() {
 	{
 		close(filed[1]);
 		
+		/* reading the first byte to determine the length of the 
+		 * upcoming string
+		 */
 		read(filed[0], &lb, 1);
-		//printf("LB = %d\n", lb);
 		
 		n = 1;
 		
@@ -169,12 +176,17 @@ void getstats() {
 			if(strcmp(buf, "TERMINATE") == 0)
 				break;
 			
+			/* splitting the string to get the tokens we need */
 			isbn = strtok(buf, ";");
 			t = strtok(NULL, ";");
 			title = strtok(t, ":");
 			
 			printf("ISBN = %s, TITLE = %s\n", isbn, title);
-
+			//printf("<%s> <%s>\n", isbn, title);	
+				
+			/* iteration of the LENDING_ENTRIES file to find
+			 * who has borrowed the book we are currently looking at
+			 */
 			while(!feof(fp2)) 
 			{
 				fread(&l_entries,sizeof(l_entries),1,fp2);
@@ -190,9 +202,8 @@ void getstats() {
 			
 			rewind(fp2);
 			
+			/* reading the length byte again for the next iteration */
 			read(filed[0], &lb, 1);
-			
-			//printf("LB = %d\n", lb);
 		}
 		
 		close(filed[0]);
@@ -206,31 +217,33 @@ void getstats() {
 int main(int argc, char *argv[]) {
 	
 	int choice; /* holds menu choice of user */
+	char c[2];
 
-	//system("clear"); 
-
-	printf("\n1. Book Entry\n2. Lending Entry\n3. Print Book Statuses\
-	\n4. Exit\n\n");
-	
-	scanf("%d", &choice);
-	
-	switch(choice)
-	{
-		case 1:	bookentry();
-				break;
-				
-		case 2: lendentry();
-				break;
-				
-		case 3: getstats();
-				break;
-				
-		case 4: printf("Thank you for using me\n");
-				break;
+	while(1) {
 		
-		default: printf("You did something wrong\n");  
+		printf("\n1. Book Entry\n2. Lending Entry\n3. Print Book Statuses\
+				\n4. Exit\n\n");
+		
+		fgets(c, sizeof(c), stdin); 
+		choice = atoi(c);
+		
+		switch(choice)
+		{
+			case 1:	bookentry();
+					break;
+					
+			case 2: lendentry();
+					break;
+					
+			case 3: getstats();
+					break;
+					
+			case 4: printf("Thank you for using me\n");
+					exit(0);
+			
+			default: printf("You did something wrong\n");  
+		}
 	}
-
 	
 	return 0;
 	
