@@ -188,6 +188,8 @@ void getstats() {
 				}
 			}
 			
+			rewind(fp2);
+			
 			read(filed[0], &lb, 1);
 			
 			//printf("LB = %d\n", lb);
