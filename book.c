@@ -20,7 +20,8 @@ FILE *fp2;
 
 void bookentry() {
 	
-	char str[4]; /* temporary string to hold copies number for atoi() */
+	/* temporary string to hold copies number for atoi() */
+	char str[4]; 
 	int i;
 	
 	if((fp = fopen("BOOK_ENTRIES", "a+")) == NULL) 
@@ -34,6 +35,7 @@ void bookentry() {
 	
 	printf("New ISBN: ");
 	fgets(b_entries.isbn, sizeof(b_entries.isbn), stdin);
+	
 	/* removing the newline that gets added by fgets */
 	for(i=0; i<strlen(b_entries.isbn); i++) 
 	{
@@ -53,7 +55,7 @@ void bookentry() {
 	fgets(str, sizeof(str), stdin);
 	b_entries.copies = atoi(str);
 	
-	/* writing everything to the BOOK_ENTRIES FILE */
+	/* writing everything to the "BOOK_ENTRIES" FILE */
 	fwrite(&b_entries, sizeof(b_entries), 1, fp);
 	
 	fclose(fp);
@@ -61,30 +63,49 @@ void bookentry() {
 
 void lendentry() {
 	
+	int i;
+	
 	if((fp = fopen("LENDING_ENTRIES", "a+")) == NULL) 
 	{
 		printf("cannot open file\n");
 		return;
 	}
 	
-	printf("Enter ISBN: ");
+	/* catching that newline again :P */
+	getchar();
 	
-	for(;;) 
+	
+	/* read isbn from stdin */
+	printf("Enter ISBN: ");
+	fgets(l_entries.isbn, sizeof(l_entries.isbn), stdin);
+	/* again, removing the newline that fgets() adds if the string
+	 * you provide is not max length
+	 */
+	for(i=0; i<strlen(l_entries.isbn); i++) 
 	{
-		scanf("%s", &l_entries.isbn);
-		
-		if(strlen(l_entries.isbn)==0 || strlen(l_entries.isbn)>13) 
-			printf("\nYou provided an invalid ISBN number\n");
-		else 
-			break;
+		if(l_entries.isbn[i] == '\n')
+			l_entries.isbn[i] = 0;
 	}
 	
+	/* read name from stdin */
 	printf("Enter name: ");
-	scanf("%s", &l_entries.name);
+	fgets(l_entries.name, sizeof(l_entries.name), stdin);
+	for(i=0; i<strlen(l_entries.name); i++) 
+	{
+		if(l_entries.name[i] == '\n')
+			l_entries.name[i] = 0;
+	}
 	
+	/* read email from stdin */
 	printf("Enter email: ");
-	scanf("%s", &l_entries.email);
+	fgets(l_entries.email, sizeof(l_entries.email), stdin);
+	for(i=0; i<strlen(l_entries.email); i++) 
+	{
+		if(l_entries.email[i] == '\n')
+			l_entries.email[i] = 0;
+	}
 	
+	/* writing everything to the "LENDING_ENTRIES" file */
 	fwrite(&l_entries, sizeof(l_entries), 1, fp);
 	
 	fclose(fp);
@@ -184,7 +205,7 @@ void getstats() {
 			printf("ISBN = %s, TITLE = %s\n", isbn, title);
 			//printf("<%s> <%s>\n", isbn, title);	
 				
-			/* iteration of the LENDING_ENTRIES file to find
+			/* iteration of the "LENDING_ENTRIES" file to find
 			 * who has borrowed the book we are currently looking at
 			 */
 			while(!feof(fp2)) 
